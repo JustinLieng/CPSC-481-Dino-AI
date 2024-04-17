@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        How To Train Your T-Rex
+        <title>How To Train Your T-Rex</title>
+        <meta charset="utf-8">
     </head>
     <div>
         Our AI will learn how to approach obstacles in the Chrome Dino Game and learn how to play the game on its own.
@@ -13,8 +14,15 @@
                 Canvas Not Supported
             </canvas>
         </div>
+        <input type="range" id = "slider" min = "1" max = "100" onchange = "changeInterval()">
+        <output id="sliderVal"></output>
+        <script type="text/javascript" src = "./Matrix.js"></script>
+        <script type="text/javascript" src = "./Genetic External Algorithms.js"></script>
+        <script type="text/javascript" src = "./Obstacles.js"></script>
+        <script type="text/javascript" src = "./VisualizeData.js"></script>
+        <script type="text/javascript" src = "./Player Object.js"></script>
         <script type="text/javascript" src="./GenerateClouds.js"></script>
-        <script>
+        <script type="text/javascript">
 
 		// Get canvas (Setting up environment)
 		var canvas = document.getElementById('canvas');
@@ -93,6 +101,16 @@
 		var replayGen = 0;
 		var bot = new Bot();
 		var isBot = false;
+
+        window.onload = function(){
+			setup();
+			loop();
+		}
+
+        function setup(){
+            // .
+		}
+
         </script>
     </body>
 </html>
