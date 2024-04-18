@@ -1,0 +1,16 @@
+{
+  "name": "dino-ai",
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build"
+  },
+  "devDependencies": {
+    "parcel": "^2.12.0"
+  },
+  "description": "Build and train an AI to play the Chrome Dino Game for CPSC 481 (AI Class)",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
+}
