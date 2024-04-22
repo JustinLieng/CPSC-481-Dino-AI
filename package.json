@@ -6,11 +6,18 @@
     "build": "parcel build"
   },
   "devDependencies": {
-    "parcel": "^2.12.0"
+    "@parcel/transformer-less": "^2.12.0",
+    "buffer": "^6.0.3",
+    "parcel": "^2.12.0",
+    "process": "^0.11.10"
   },
   "description": "Build and train an AI to play the Chrome Dino Game for CPSC 481 (AI Class)",
   "version": "1.0.0",
   "main": "index.js",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.18.0",
+    "babel-polyfill": "^6.26.0"
+  }
 }
