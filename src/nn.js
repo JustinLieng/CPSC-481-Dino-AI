@@ -40,25 +40,25 @@ function handleReset(dinos) {
     // sigmoid activation function
     // and output of 6
     dino.model.add(tf.layers.dense({
-      inputShape:[3],
+      inputShape:[4],
       activation:'sigmoid',
-      units:6
+      units:8
     }))
 
     /* this is the second output layer with 6 inputs coming from the previous hidden layer
     activation is again sigmoid and output is given as 2 units 10 for not jump and 01 for jump
     */
     dino.model.add(tf.layers.dense({
-      inputShape:[6],
+      inputShape:[8],
       activation:'sigmoid',
-      units:2
+      units:3
     }))
 
     /* compiling the model using meanSquaredError loss function and adam 
     optimizer with a learning rate of 0.1 */
     dino.model.compile({
       loss:'meanSquaredError',
-      optimizer : tf.train.adam(0.1)
+      optimizer : tf.train.adam(0.2)
     })
 
     // object which will containn training data and appropriate labels
@@ -97,8 +97,9 @@ function handleRunning( dino, state ) {
       const predictionPromise = prediction.data();
       
       predictionPromise.then((result) => {
-        // console.log(result);
+        console.log(result);
         // converting prediction to action
+        //if (result[2] > )
         if (result[1] > result[0]) {
           // we want to jump
           action = 1;
@@ -110,6 +111,9 @@ function handleRunning( dino, state ) {
         }
         resolve(action);
       });
+
+      //if (Math.max(result[0], result[]))
+
     } else {
       resolve(0);
     }
@@ -151,12 +155,13 @@ function handleCrash( dino ) {
 function convertStateToVector(state) {
   if (state) {
     return [
+      state.obstacleY / CANVAS_HEIGHT,
       state.obstacleX / CANVAS_WIDTH,
       state.obstacleWidth / CANVAS_WIDTH,
       state.speed / 100
     ];
   }
-  return [0, 0, 0];
+  return [0, 0, 0, 0];
 }
 // call setup on loading content
 document.addEventListener('DOMContentLoaded', setup);
