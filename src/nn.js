@@ -58,7 +58,7 @@ function handleReset(dinos) {
     optimizer with a learning rate of 0.1 */
     dino.model.compile({
       loss:'meanSquaredError',
-      optimizer : tf.train.adam(0.2)
+      optimizer : tf.train.adam(0.3)
     })
 
     // object which will containn training data and appropriate labels
@@ -86,7 +86,6 @@ function handleReset(dinos) {
 
 function handleRunning( dino, state ) {
   return new Promise((resolve) => {
-    if (!dino.jumping) {
       // whenever the dino is not jumping decide whether it needs to jump or not
       let action = 0;// variable for action 1 for jump 0 for not
       // call model.predict on the state vecotr after converting it to tensor2d object
@@ -99,24 +98,29 @@ function handleRunning( dino, state ) {
       predictionPromise.then((result) => {
         console.log(result);
         // converting prediction to action
-        //if (result[2] > )
-        if (result[1] > result[0]) {
-          // we want to jump
-          action = 1;
-          // set last jumping state to current state
-          dino.lastJumpingState = state;
-        } else {
-          // set running state to current state
-          dino.lastRunningState = state;
+        const result_value = Math.max(result[0], result[1], result[2])
+
+        switch(result_value) {
+          case result[0]:
+            console.log('run')
+            dino.lastRunningState = state;
+            break;
+          case result[1]:
+            console.log('jump')
+            action = 1;
+            dino.lastJumpingState = state;
+            break;
+          case result[2]:
+            console.log('duck')
+            action = -1;
+            dino.lastDuckingState = state;
+            break;
+          default:
+            break;
         }
+        
         resolve(action);
       });
-
-      //if (Math.max(result[0], result[]))
-
-    } else {
-      resolve(0);
-    }
   });
 }
 /**
@@ -133,12 +137,15 @@ function handleCrash( dino ) {
     // Should not jump next time
     // convert state object to array
     input = convertStateToVector(dino.lastJumpingState);
-    label = [1, 0];
+    label = [1, 0, 1];
+  } else if (dino.ducking) {
+    input = convertStateToVector(dino.lastDuckingState)
+    label = [1, 1, 0]
   } else {
     // Should jump next time
     // convert state object to array
     input = convertStateToVector(dino.lastRunningState);
-    label = [0, 1];
+    label = [0, 1, 1];
   }
   // push the new input to the training set
   dino.training.inputs.push(input);
