@@ -64,9 +64,9 @@ export default class TrexGroup {
         if (result) {
           crashes += 1;
           tRex.crashed = true;
-          this.onCrash( tRex, {...state, jumping: tRex.jumping, ducking: tRex.ducking} );
+          this.onCrash( tRex, {...state, jumping: tRex.jumping, ducking: tRex.ducking, tRexYPosition: tRex.yPos} );
         } else {
-          const action = await this.onRunning(tRex, {...state, jumping: tRex.jumping, ducking: tRex.ducking} );
+          const action = await this.onRunning(tRex, {...state, jumping: tRex.jumping, ducking: tRex.ducking, tRexYPosition: tRex.yPos} );
           if (action === 1) {
             tRex.startJump();
           } else if (action === -1) {

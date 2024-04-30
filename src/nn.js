@@ -21,14 +21,14 @@ function setup() {
 }
 // variable which tells whether thethe game is being loaded for the first time i.e. not a reset
 
-let firstTime = true; 
+let firstTime = true;
 
 
 function handleReset(dinos) {
   // running this for single dino at a time
   // console.log(dinos);
-  
-  const dino = dinos[0]; 
+
+  const dino = dinos[0];
   // if the game is being started for the first time initiate 
   // the model and compile it to make it ready for training and predicting
   if (firstTime) {
@@ -40,25 +40,25 @@ function handleReset(dinos) {
     // sigmoid activation function
     // and output of 6
     dino.model.add(tf.layers.dense({
-      inputShape:[4],
-      activation:'sigmoid',
-      units:8
+      inputShape: [7],
+      activation: 'sigmoid',
+      units: 6
     }))
 
     /* this is the second output layer with 6 inputs coming from the previous hidden layer
     activation is again sigmoid and output is given as 2 units 10 for not jump and 01 for jump
     */
     dino.model.add(tf.layers.dense({
-      inputShape:[8],
-      activation:'sigmoid',
-      units:3
+      inputShape: [6],
+      activation: 'sigmoid',
+      units: 3
     }))
 
     /* compiling the model using meanSquaredError loss function and adam 
     optimizer with a learning rate of 0.1 */
     dino.model.compile({
-      loss:'meanSquaredError',
-      optimizer : tf.train.adam(0.3)
+      loss: 'meanSquaredError',
+      optimizer: tf.train.adam(0.1)
     })
 
     // object which will containn training data and appropriate labels
@@ -66,13 +66,13 @@ function handleReset(dinos) {
       inputs: [],
       labels: []
     };
-    
+
   } else {
     // Train the model before restarting.
     // log into console that model will now be trained
-    console.info('Training');
+    //console.info('Training');
     // convert the inputs and labels to tensor2d format and  then training the model
-    console.info(tf.tensor2d(dino.training.inputs))
+    //console.info(tf.tensor2d(dino.training.inputs))
     dino.model.fit(tf.tensor2d(dino.training.inputs), tf.tensor2d(dino.training.labels));
   }
 }
@@ -84,52 +84,73 @@ function handleReset(dinos) {
  * returns a promise resolved with an action
  */
 
-function handleRunning( dino, state ) {
+function handleRunning(dino, state) {
   return new Promise((resolve) => {
-      // whenever the dino is not jumping decide whether it needs to jump or not
-      let action = 0;// variable for action 1 for jump 0 for not
-      // call model.predict on the state vecotr after converting it to tensor2d object
-      const prediction = dino.model.predict(tf.tensor2d([convertStateToVector(state)]));
 
-      // the predict function returns a tensor we get the data in a promise as result
-      // and based don result decide the action
-      const predictionPromise = prediction.data();
-      
-      predictionPromise.then((result) => {
-        console.log(result);
-        // converting prediction to action
-        const result_value = Math.max(result[0], result[1], result[2])
+    //if (state.obstacleX <= -20) handleSuccess(dino, state)
 
-        switch(result_value) {
-          case result[0]:
-            console.log('run')
-            dino.lastRunningState = state;
-            break;
-          case result[1]:
-            console.log('jump')
-            action = 1;
-            dino.lastJumpingState = state;
-            break;
-          case result[2]:
-            console.log('duck')
-            action = -1;
-            dino.lastDuckingState = state;
-            break;
-          default:
-            break;
-        }
-        
-        resolve(action);
-      });
+    // whenever the dino is not jumping decide whether it needs to jump or not
+    let action = 0;// variable for action 1 for jump 0 for not
+    // call model.predict on the state vecotr after converting it to tensor2d object
+    const prediction = dino.model.predict(tf.tensor2d([convertStateToVector(state)]));
+
+    // the predict function returns a tensor we get the data in a promise as result
+    // and based don result decide the action
+    const predictionPromise = prediction.data();
+
+    predictionPromise.then((result) => {
+      console.log(result);
+      // converting prediction to action
+      const result_value = Math.max(result[0], result[1], result[2])
+
+      switch (result_value) {
+        case result[0]:
+          dino.lastRunningState = state;
+          break;
+        case result[1]:
+          action = 1;
+          dino.lastJumpingState = state;
+          break;
+        case result[2]:
+          action = -1;
+          dino.lastDuckingState = state;
+          break;
+        default:
+          break;
+      }
+
+      resolve(action);
+    });
   });
 }
+
+function handleSuccess(dino, state) {
+  let input = null;
+  let label = null;
+
+  if (dino.jumping) {
+    input = convertStateToVector(state);
+    label = [0, 0.1, 0];
+  } else if (dino.ducking) {
+    input = convertStateToVector(state)
+    label = [0, 0, 0.1]
+  } else {
+    input = convertStateToVector(state);
+    label = [0.1, 0, 0];
+  }
+
+  console.log('succ', state, label)
+  dino.training.inputs.push(input);
+  dino.training.labels.push(label);
+}
+
 /**
  * 
  * @param {object} dino 
  * handles the crash of a dino before restarting the game
  * 
  */
-function handleCrash( dino ) {
+function handleCrash(dino) {
   let input = null;
   let label = null;
   // check if at the time of crash dino was jumping or not
@@ -162,13 +183,16 @@ function handleCrash( dino ) {
 function convertStateToVector(state) {
   if (state) {
     return [
-      state.obstacleY / CANVAS_HEIGHT,
       state.obstacleX / CANVAS_WIDTH,
       state.obstacleWidth / CANVAS_WIDTH,
-      state.speed / 100
+      state.obstacleY / CANVAS_HEIGHT,
+      state.tRexYPosition / CANVAS_HEIGHT,
+      state.speed / 100,
+      state.jumping,
+      state.ducking
     ];
   }
-  return [0, 0, 0, 0];
+  return [0, 0, 0, 0, 0, 0, 0];
 }
 // call setup on loading content
 document.addEventListener('DOMContentLoaded', setup);
