@@ -2,8 +2,10 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './game/constants';
 import { Runner } from './game';
+import {InitializeExcel, AppendToExcel } from './excel';
 
 let runner = null;
+let generation = 0
 // initial setup for the game the  setup function is called when the dom gets loaded
 
 function setup() {
@@ -18,6 +20,8 @@ function setup() {
   window.runner = runner;
   // Initialize everything in the game and start the game.
   runner.init();
+
+  InitializeExcel()
 }
 // variable which tells whether thethe game is being loaded for the first time i.e. not a reset
 
@@ -87,40 +91,40 @@ function handleReset(dinos) {
 function handleRunning(dino, state) {
   return new Promise((resolve) => {
 
-    //if (state.obstacleX <= -20) handleSuccess(dino, state)
-
-    // whenever the dino is not jumping decide whether it needs to jump or not
-    let action = 0;// variable for action 1 for jump 0 for not
-    // call model.predict on the state vecotr after converting it to tensor2d object
-    const prediction = dino.model.predict(tf.tensor2d([convertStateToVector(state)]));
-
-    // the predict function returns a tensor we get the data in a promise as result
-    // and based don result decide the action
-    const predictionPromise = prediction.data();
-
-    predictionPromise.then((result) => {
-      console.log(result);
-      // converting prediction to action
-      const result_value = Math.max(result[0], result[1], result[2])
-
-      switch (result_value) {
-        case result[0]:
-          dino.lastRunningState = state;
-          break;
-        case result[1]:
-          action = 1;
-          dino.lastJumpingState = state;
-          break;
-        case result[2]:
-          action = -1;
-          dino.lastDuckingState = state;
-          break;
-        default:
-          break;
-      }
-
-      resolve(action);
-    });
+      //if (state.obstacleX <= -20) handleSuccess(dino, state)
+  
+      // whenever the dino is not jumping decide whether it needs to jump or not
+      let action = 0;// variable for action 1 for jump 0 for not
+      // call model.predict on the state vecotr after converting it to tensor2d object
+      const prediction = dino.model.predict(tf.tensor2d([convertStateToVector(state)]));
+  
+      // the predict function returns a tensor we get the data in a promise as result
+      // and based don result decide the action
+      const predictionPromise = prediction.data();
+  
+      predictionPromise.then((result) => {
+        //console.log(result);
+        // converting prediction to action
+        const result_value = Math.max(result[0], result[1], result[2])
+  
+        switch (result_value) {
+          case result[0]:
+            dino.lastRunningState = state;
+            break;
+          case result[1]:
+            action = 1;
+            dino.lastJumpingState = state;
+            break;
+          case result[2]:
+            action = -1;
+            dino.lastDuckingState = state;
+            break;
+          default:
+            break;
+        }
+  
+        resolve(action);
+      });
   });
 }
 
@@ -130,13 +134,13 @@ function handleSuccess(dino, state) {
 
   if (dino.jumping) {
     input = convertStateToVector(state);
-    label = [0, 0.1, 0];
+    label = [0, 1, 0];
   } else if (dino.ducking) {
     input = convertStateToVector(state)
-    label = [0, 0, 0.1]
+    label = [0, 0, 1]
   } else {
     input = convertStateToVector(state);
-    label = [0.1, 0, 0];
+    label = [1, 0, 0];
   }
 
   console.log('succ', state, label)
@@ -153,6 +157,11 @@ function handleSuccess(dino, state) {
 function handleCrash(dino) {
   let input = null;
   let label = null;
+
+  generation++
+  console.log(generation, runner.distanceRan)
+  AppendToExcel(generation, runner.distanceRan)
+
   // check if at the time of crash dino was jumping or not
   if (dino.jumping) {
     // Should not jump next time
@@ -184,9 +193,9 @@ function convertStateToVector(state) {
   if (state) {
     return [
       state.obstacleX / CANVAS_WIDTH,
+      state.tRexYPosition / CANVAS_HEIGHT,
       state.obstacleWidth / CANVAS_WIDTH,
       state.obstacleY / CANVAS_HEIGHT,
-      state.tRexYPosition / CANVAS_HEIGHT,
       state.speed / 100,
       state.jumping,
       state.ducking

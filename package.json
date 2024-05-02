@@ -18,6 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs": "^4.18.0",
-    "babel-polyfill": "^6.26.0"
+    "babel-polyfill": "^6.26.0",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5"
   }
 }
