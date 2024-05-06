@@ -46,14 +46,14 @@ function handleReset(dinos) {
     dino.model.add(tf.layers.dense({
       inputShape: [7],
       activation: 'sigmoid',
-      units: 6
+      units: 14
     }))
 
     /* this is the second output layer with 6 inputs coming from the previous hidden layer
     activation is again sigmoid and output is given as 2 units 10 for not jump and 01 for jump
     */
     dino.model.add(tf.layers.dense({
-      inputShape: [6],
+      inputShape: [14],
       activation: 'sigmoid',
       units: 3
     }))
@@ -62,7 +62,7 @@ function handleReset(dinos) {
     optimizer with a learning rate of 0.1 */
     dino.model.compile({
       loss: 'meanSquaredError',
-      optimizer: tf.train.adam(0.1)
+      optimizer: tf.train.adam(0.2)
     })
 
     // object which will containn training data and appropriate labels
@@ -91,8 +91,10 @@ function handleReset(dinos) {
 function handleRunning(dino, state) {
   return new Promise((resolve) => {
 
+    if (!dino.jumping) {
+
       //if (state.obstacleX <= -20) handleSuccess(dino, state)
-  
+        
       // whenever the dino is not jumping decide whether it needs to jump or not
       let action = 0;// variable for action 1 for jump 0 for not
       // call model.predict on the state vecotr after converting it to tensor2d object
@@ -111,7 +113,7 @@ function handleRunning(dino, state) {
           case result[0]:
             dino.lastRunningState = state;
             break;
-          case result[1]:
+            case result[1]:
             action = 1;
             dino.lastJumpingState = state;
             break;
@@ -119,12 +121,15 @@ function handleRunning(dino, state) {
             action = -1;
             dino.lastDuckingState = state;
             break;
-          default:
-            break;
+            default:
+              break;
+            }
+            
+            resolve(action);
+          });
+        } else {
+          resolve(0)
         }
-  
-        resolve(action);
-      });
   });
 }
 
